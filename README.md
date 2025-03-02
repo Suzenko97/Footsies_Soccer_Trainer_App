@@ -11,4 +11,4 @@ Technologies used so far:
     React Roter Dom
 
 
-    ***NEED TO REVIEW DB ACCESS RULES WITHIN 30 DAYS FROM 01/25/25***
+    ***DB ACCESS RULES UPDATED AS OF 03/02/25***

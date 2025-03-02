@@ -28,6 +28,14 @@ const LoginPage = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
+            <div>
+                <h1>Welcome to Footsies</h1>
+                <p>
+                    Footsies is a next-generation digital soccer coaching platform that combines traditional training methods with cutting-edge AI and interactive technologies. 
+                    Designed for players of all skill levels, Footsies offers a personalized, gamified, and immersive training experience that adapts to your unique needs and goals.
+                </p>
+            </div>
+
             <h2>Login</h2>
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input
