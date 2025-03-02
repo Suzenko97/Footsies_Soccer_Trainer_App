@@ -3,18 +3,44 @@ import React, { useState } from 'react';
 import { auth } from '../Config/firebase';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserProfile, isUsernameAvailable, updateUserUid } from '../Services';
 
 const SignupPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleSignup = async (e) => {
         e.preventDefault();
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // Redirect to dashboard after successful signup
+            //Check if username is available
+            if (username) {
+                const available = await isUsernameAvailable(username);
+                if (!available) {
+                    setError("Username already taken. Please choose another one.");
+                    return;
+                }
+            }
+
+            //Create user with email and password in Firebase Auth
+            console.log("Creating user with:", { email, username });
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            console.log("User created in Firebase Auth:", userCredential);
+            const user = userCredential.user;
+
+            //Create the user profile in Firestore using the user's UID
+            await createUserProfile(user.uid, { email, username });
+
+            // //Create the user profile in Firestore (without auth)
+            // const tempUid = `temp_${Date.now()}`; //Generate temporary UID
+            // await createUserProfile(user, { email, password });
+
+            // //Update the Firestore Doc with the actual UID from Firebase Auth
+            // await updateUserUid(tempUid, user.uid);
+
+            //Redirect to dashboard page
             navigate('/dashboard');
         } catch (err) {
             setError(err.message);
@@ -26,6 +52,13 @@ const SignupPage = () => {
         <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
             <h2>Sign Up</h2>
             <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    requiredstyle={{ padding: '8px' }}
+                />
                 <input
                     type="email"
                     value={email}
