@@ -28,9 +28,26 @@ export const createUserProfile = async (uid, userData) => {
         speed: 0,
         stamina: 0
       },
+      skillLevels: {
+        dribbling: 1,
+        shooting: 1,
+        passing: 1,
+        defending: 1,
+        speed: 1,
+        stamina: 1
+      },
+      skillThresholds: {
+        dribbling: 100,
+        shooting: 100,
+        passing: 100,
+        defending: 100,
+        speed: 100,
+        stamina: 100
+      },
       createdAt: new Date(),
       level: 1,
-      xp: 0
+      xp: 0,
+      xpThreshold: 100
     });
     console.log("Firestore document created successfully");
     return true;
@@ -91,10 +108,10 @@ export const isUsernameAvailable = async (username) => {
 };
 
 // Update user skills
-export const updateUserSkills = async (uid, skills) => {
+export const updateUserSkills = async (uid, skills, updatedSkillLevels, updatedSkillThresholds) => {
   try {
     const userRef = doc(db, "Users", uid);
-    await updateDoc(userRef, { skills });
+    await updateDoc(userRef, { skills, skillLevels: updatedSkillLevels, skillThresholds: updatedSkillThresholds });
     return true;
   } catch (error) {
     console.error("Error updating user skills:", error);
@@ -103,10 +120,10 @@ export const updateUserSkills = async (uid, skills) => {
 };
 
 // Update user XP and level
-export const updateUserProgress = async (uid, xp, level) => {
+export const updateUserProgress = async (uid, xp, level, xpThreshold) => {
   try {
     const userRef = doc(db, "Users", uid);
-    await updateDoc(userRef, { xp, level });
+    await updateDoc(userRef, { xp, level, xpThreshold });
     return true;
   } catch (error) {
     console.error("Error updating user progress:", error);

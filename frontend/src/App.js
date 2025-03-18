@@ -4,6 +4,9 @@ import { auth } from './Config/firebase';
 import LoginPage from './Pages/LoginPage';
 import DashboardPage from './Pages/DashboardPage';
 import SignupPage from './Pages/SignupPage';
+import StatPage from './Pages/StatPage';
+import TrainingPage from './Pages/TrainingPage';
+import SkillTrainingPage from './Pages/SkillsTrainingPage';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -50,6 +53,9 @@ function App() {
             path="/" 
             element={<Navigate to={user ? "/dashboard" : "/login"} />} 
           />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/stat/:skill" element={<SkillTrainingPage />} />
+          <Route path="/training" element={<TrainingPage />} />
         </Routes>
       </div>
     </Router>
