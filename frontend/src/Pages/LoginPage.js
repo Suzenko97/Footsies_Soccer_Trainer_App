@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../Config/firebase';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth'; //
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -13,77 +13,89 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            //Redirect to dashboard after login
             navigate('/dashboard');
         }
         catch (err) {
             setError(err.message);
-            console.error("Login error:", err); // Debug log //
         }
     };
 
     const handleSignupRedirect = () => {
-        navigate('/signup'); // Redirect to the signup page
+        navigate('/signup');
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
-            <div>
-                <h1>Welcome to Footsies</h1>
-                <p>
-                    Footsies is a next-generation digital soccer coaching platform that combines traditional training methods with cutting-edge AI and interactive technologies. 
-                    Designed for players of all skill levels, Footsies offers a personalized, gamified, and immersive training experience that adapts to your unique needs and goals.
-                </p>
-            </div>
+        <div className="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+            <div className="card shadow-sm" style={{ maxWidth: '500px' }}>
+                <div className="card-header text-center py-4">
+                    <h1 className="h3 mb-0">
+                        <i className="fas fa-futbol me-2"></i>
+                        Welcome to Footsies
+                    </h1>
+                </div>
+                <div className="card-body p-4">
+                    <div className="text-center mb-4">
+                        <p className="text-muted">
+                            Your personal AI-powered soccer training companion. Elevate your game with personalized training sessions and real-time feedback.
+                        </p>
+                    </div>
 
-            <h2>Login</h2>
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    required
-                    style={{ padding: '8px' }}
-                />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                    style={{ padding: '8px' }}
-                />
-                <button 
-                    type="submit"
-                    style={{ 
-                        padding: '10px', 
-                        backgroundColor: '#007bff', 
-                        color: 'white', 
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Login
-                </button>
-            </form>
-            {error && <p style={{ color: "red", marginTop: '10px' }}>{error}</p>}
+                    {error && (
+                        <div className="alert alert-danger" role="alert">
+                            <i className="fas fa-exclamation-circle me-2"></i>
+                            {error}
+                        </div>
+                    )}
 
-            {/* Signup button */}
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <p>Don't have an account? <button 
-                    onClick={handleSignupRedirect}
-                    style={{ 
-                        backgroundColor: 'transparent', 
-                        border: 'none', 
-                        color: '#007bff', 
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                    }}
-                >
-                    Sign Up
-                </button></p>
+                    <form onSubmit={handleLogin}>
+                        <div className="mb-3">
+                            <label htmlFor="email" className="form-label">Email address</label>
+                            <div className="input-group">
+                                <span className="input-group-text">
+                                    <i className="fas fa-envelope"></i>
+                                </span>
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label htmlFor="password" className="form-label">Password</label>
+                            <div className="input-group">
+                                <span className="input-group-text">
+                                    <i className="fas fa-lock"></i>
+                                </span>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="d-grid gap-2">
+                            <button type="submit" className="btn btn-primary">
+                                <i className="fas fa-sign-in-alt me-2"></i>
+                                Sign In
+                            </button>
+                            <button type="button" className="btn btn-outline-primary" onClick={handleSignupRedirect}>
+                                <i className="fas fa-user-plus me-2"></i>
+                                Create New Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );

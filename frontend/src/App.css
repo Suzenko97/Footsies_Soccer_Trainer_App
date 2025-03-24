@@ -1,5 +1,260 @@
+/* Global styles and variables */
+:root {
+  --teal-primary: #009688;
+  --teal-dark: #00796b;
+  --teal-light: #b2dfdb;
+  --teal-accent: #1de9b6;
+  --gray-light: #f5f5f5;
+  --gray-medium: #e0e0e0;
+  --text-dark: #2c3e50;
+  --text-light: #ffffff;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Layout and containers */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  padding-top: 56px;
+  min-height: calc(100vh - 56px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Navigation Styles */
+.navigation-wrapper {
+  position: relative;
+  z-index: 1030;
+}
+
+.navbar {
+  background-color: white !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 56px;
+}
+
+.navbar-brand {
+  color: var(--teal-primary) !important;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+.navbar-toggler {
+  border: none !important;
+  outline: none !important;
+  padding: 0.5rem !important;
+  margin-right: -0.5rem;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none !important;
+}
+
+.navbar-toggler svg {
+  width: 24px;
+  height: 24px;
+  color: var(--teal-primary);
+}
+
+.nav-link {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: var(--teal-primary);
+}
+
+.nav-link.active {
+  color: var(--teal-primary) !important;
+}
+
+.sidebar {
+  background-color: white;
+  transition: left 0.3s ease;
+}
+
+.sidebar-item {
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.sidebar-item:hover {
+  background-color: #f8f9fa;
+  color: var(--teal-primary);
+}
+
+.sidebar-item.active {
+  color: var(--teal-primary);
+  background-color: #f8f9fa;
+  border-right: 3px solid var(--teal-primary);
+}
+
+/* Cards and panels */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background-color: var(--teal-primary);
+  color: var(--text-light);
+  border-radius: 8px 8px 0 0;
+  padding: 1rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Progress Bar Styles */
+.progress {
+  height: 10px !important;
+  border-radius: 5px;
+  background-color: #e9ecef;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: var(--teal-primary);
+  border-radius: 5px;
+  transition: width 0.6s ease;
+  color: white;
+  font-size: 0.7rem;
+  line-height: 10px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--teal-primary);
+  border-color: var(--teal-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+
+.btn-outline-primary {
+  color: var(--teal-primary);
+  border-color: var(--teal-primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--teal-primary);
+  border-color: var(--teal-primary);
+  color: var(--text-light);
+}
+
+/* Quest and Training Module Styles */
+.quest-card, .training-module-card {
+  cursor: pointer;
+}
+
+.quest-card.locked, .training-module-card.locked {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.quest-card .progress, .training-module-card .progress {
+  height: 4px;
+  margin-top: 1rem;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  color: var(--teal-primary);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Forms */
+.form-control:focus {
+  border-color: var(--teal-light);
+  box-shadow: 0 0 0 0.2rem rgba(0, 150, 136, 0.25);
+}
+
+/* Tables */
+.table {
+  background-color: var(--text-light);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: var(--teal-primary);
+  color: var(--text-light);
+  border-bottom: none;
+}
+
+/* Icons */
+.fa-icon {
+  color: var(--teal-primary);
+  margin-right: 0.5rem;
+}
+
+/* Alerts */
+.alert-primary {
+  background-color: var(--teal-light);
+  border-color: var(--teal-primary);
+  color: var(--text-light);
+}
+
+/* Badges */
+.badge-primary {
+  background-color: var(--teal-primary);
+}
+
 .App {
   text-align: center;
+  background-color: var(--gray-light);
 }
 
 .App-logo {
@@ -14,18 +269,18 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: var(--teal-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: var(--text-light);
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--teal-light);
 }
 
 @keyframes App-logo-spin {

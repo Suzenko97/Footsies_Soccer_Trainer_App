@@ -7,56 +7,72 @@ import SignupPage from './Pages/SignupPage';
 import StatPage from './Pages/StatPage';
 import TrainingPage from './Pages/TrainingPage';
 import SkillTrainingPage from './Pages/SkillsTrainingPage';
+import AboutPage from './Pages/AboutPage';
+import Navigation from './Components/Navigation';
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
-
-  // useEffect(() => {
-  //   //Listen for user authentication state changes (login or logout)
-  //   const unsubscribe = auth.onAuthStateChanged(setUser);
-  //   return () => unsubscribe();
-  // }, []);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       setLoading(false);
-      console.log("Auth state changed:", user); // Debug log
     });
     return () => unsubscribe();
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container d-flex justify-content-center align-items-center min-vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
-
-  console.log("Current user state:", user); // Debug log
 
   return (
     <Router>
-      <div className="app-container">
-        <Routes>
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
-          />
-          <Route 
-            path="/signup" 
-            element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
-          />
-          <Route 
-            path="/dashboard" 
-            element={user ? <DashboardPage /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/" 
-            element={<Navigate to={user ? "/dashboard" : "/login"} />} 
-          />
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/stat/:skill" element={<SkillTrainingPage />} />
-          <Route path="/training" element={<TrainingPage />} />
-        </Routes>
+      <div className="app-container min-vh-100">
+        {user && <Navigation />}
+        <div className="content-wrapper">
+          <Routes>
+            <Route 
+              path="/" 
+              element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/login" 
+              element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
+            />
+            <Route 
+              path="/signup" 
+              element={user ? <Navigate to="/dashboard" /> : <SignupPage />} 
+            />
+            <Route 
+              path="/dashboard" 
+              element={user ? <DashboardPage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/training" 
+              element={user ? <TrainingPage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/skills" 
+              element={user ? <SkillTrainingPage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/stats" 
+              element={user ? <StatPage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/about" 
+              element={<AboutPage />} 
+            />
+          </Routes>
+        </div>
       </div>
     </Router>
   );
