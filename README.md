@@ -12,3 +12,5 @@ Technologies used so far:
 
 
     ***DB ACCESS RULES UPDATED AS OF 03/02/25***
+
+    When you clone the repo or you find that your pulled changes are not working, you need to run "npm install" in the root directory and in the frontend directory to make sure you get the updated dependencies since node_modules were removed for speed.
