@@ -38,12 +38,13 @@ const DashboardPage = () => {
         }
     };
 
-    // Function to dynamically determine XP threshold
+    // Function to determine XP threshold
     const getXpThreshold = (level) => {
-        return 100 + level * 20; // XP required increases as level goes up
+        //scaling XP
+        return 100 + level * 20;
     };
 
-    // Handle leveling up with XP overflow
+    //leveling up with XP overflow
     useEffect(() => {
         if (userData && userData.xp >= userData.xpThreshold) {
             let newLevel = userData.level;
