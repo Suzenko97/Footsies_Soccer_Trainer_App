@@ -5,9 +5,9 @@ import LoginPage from './Pages/LoginPage';
 import DashboardPage from './Pages/DashboardPage';
 import SignupPage from './Pages/SignupPage';
 import StatPage from './Pages/StatPage';
-import TrainingPage from './Pages/TrainingPage';
 import SkillTrainingPage from './Pages/SkillsTrainingPage';
 import AboutPage from './Pages/AboutPage';
+import ProfilePage from './Pages/ProfilePage';
 import Navigation from './Components/Navigation';
 import './App.css';
 
@@ -56,16 +56,16 @@ function App() {
               element={user ? <DashboardPage /> : <Navigate to="/login" />} 
             />
             <Route 
-              path="/training" 
-              element={user ? <TrainingPage /> : <Navigate to="/login" />} 
-            />
-            <Route 
               path="/skills" 
               element={user ? <SkillTrainingPage /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/stats" 
               element={user ? <StatPage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/profile" 
+              element={user ? <ProfilePage /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/about" 

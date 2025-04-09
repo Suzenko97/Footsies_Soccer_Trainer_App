@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../Config/firebase';
 import { getUserProfile } from '../Services';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser } from '@fortawesome/free-solid-svg-icons';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
@@ -63,12 +65,18 @@ const DashboardPage = () => {
                     <div className="card">
                         <div className="card-header">
                             <h5 className="mb-0">
-                                <i className="fas fa-user me-2"></i>
+                                <FontAwesomeIcon icon={faUser} className="me-2" />
                                 Profile
                             </h5>
                         </div>
                         <div className="card-body">
-                            <h3 className="mb-3">{userData.username}</h3>
+                            <div className="text-center mb-3">
+                                <div className="rounded-circle bg-light d-inline-flex justify-content-center align-items-center" 
+                                    style={{ width: "100px", height: "100px", fontSize: "3rem" }}>
+                                    <FontAwesomeIcon icon={faUser} />
+                                </div>
+                            </div>
+                            <h3 className="mb-3 text-center">{userData.username}</h3>
                             <p className="mb-2">
                                 <i className="fas fa-star me-2 text-warning"></i>
                                 Level {userData.level}
@@ -102,18 +110,9 @@ const DashboardPage = () => {
                         </div>
                         <div className="card-body">
                             <div className="row g-3">
-                                <div className="col-sm-6">
+                                <div className="col-12">
                                     <button 
                                         className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
-                                        onClick={() => navigate('/training')}
-                                    >
-                                        <i className="fas fa-running me-2"></i>
-                                        Start Training
-                                    </button>
-                                </div>
-                                <div className="col-sm-6">
-                                    <button 
-                                        className="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
                                         onClick={() => navigate('/skills')}
                                     >
                                         <i className="fas fa-graduation-cap me-2"></i>

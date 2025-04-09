@@ -47,7 +47,9 @@ export const createUserProfile = async (uid, userData) => {
       createdAt: new Date(),
       level: 1,
       xp: 0,
-      xpThreshold: 100
+      xpThreshold: 100,
+      phone: '',
+      address: ''
     });
     console.log("Firestore document created successfully");
     return true;
@@ -70,6 +72,18 @@ export const getUserProfile = async (uid) => {
     }
   } catch (error) {
     console.error("Error getting user profile:", error);
+    throw error;
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (uid, profileData) => {
+  try {
+    const userRef = doc(db, "Users", uid);
+    await updateDoc(userRef, profileData);
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
     throw error;
   }
 };
