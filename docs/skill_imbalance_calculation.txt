@@ -1,0 +1,65 @@
+# Footsies Soccer Trainer App - Skill Imbalance Calculation
+
+## Overview
+The skill imbalance score is a metric that measures how unbalanced a player's skills are across different categories. It helps players identify when they need to focus on developing their weaker skills to maintain a well-rounded training profile.
+
+## Calculation Process
+The imbalance score is calculated through the following steps:
+
+1. **Calculate Average Skill Level**:
+   - Retrieve all the player's skill levels from their profile
+   - Calculate the average level across all skills
+
+2. **Calculate Individual Skill Deviations**:
+   - For each skill, calculate the absolute deviation from the average
+   - `deviation = Math.abs(skillLevel - avgSkillLevel)`
+   - Store these deviations in a `skillDeviations` object
+
+3. **Sum Total Deviation**:
+   - Add all individual deviations together to get a total deviation value
+
+4. **Calculate Maximum Possible Deviation**:
+   - Calculate the theoretical maximum deviation possible:
+   - `maxPossibleDeviation = avgSkillLevel * numberOfSkills`
+
+5. **Normalize to 0-100 Scale**:
+   - Calculate the final imbalance score as a percentage of the maximum possible deviation:
+   - `imbalanceScore = (totalDeviation / maxPossibleDeviation) * 100`
+   - Cap the score at 100 using `Math.min(100, score)`
+   - If there's no possible deviation (e.g., no skills or all at level 0), the score defaults to 0
+
+## Interpretation
+- **Score of 0**: Perfect balance (all skills at exactly the same level)
+- **Score of 100**: Maximum imbalance (some skills are much higher than others)
+- **Higher score**: More unbalanced skill distribution
+
+## Feedback Categories
+The app provides feedback based on the imbalance score:
+- **Scores > 50**: "Significant imbalance" (red warning)
+- **Scores > 20**: "Moderate imbalance" (yellow warning)
+- **Scores ≤ 20**: "Good balance" (green confirmation)
+
+## Implementation
+The calculation is implemented in the `getSkillImbalanceAnalysis` function in `statService.js`:
+
+```javascript
+// Calculate skill deviations and imbalance score
+const skillDeviations = {};
+let totalDeviation = 0;
+
+Object.entries(skillLevels).forEach(([name, level]) => {
+  const deviation = Math.abs(level - avgSkillLevel);
+  skillDeviations[name] = deviation;
+  totalDeviation += deviation;
+});
+
+// Calculate imbalance score (0-100)
+// Higher score means more imbalance
+const maxPossibleDeviation = avgSkillLevel * skillEntries.length;
+const imbalanceScore = maxPossibleDeviation > 0 
+  ? Math.min(100, (totalDeviation / maxPossibleDeviation) * 100) 
+  : 0;
+```
+
+## Display
+The imbalance score and message are displayed in the Skill Balance tab of the Stats page, with color-coded alerts based on the severity of the imbalance.
