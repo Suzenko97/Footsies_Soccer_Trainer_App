@@ -216,7 +216,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     const sessions = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      date: doc.data().date || doc.data().timestamp.toDate().toISOString().split('T')[0]
+      date: doc.data().date || doc.data().timestamp.toDate().toISOString().split('T')[0],
+      timestamp: doc.data().timestamp?.toDate() || new Date()
     }));
     
     // Calculate daily, weekly, and monthly counts
@@ -226,34 +227,203 @@ export const getTrainingFrequencyStats = async (userId) => {
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     const dailySessions = sessions.filter(session => {
-      const sessionDate = new Date(session.date);
+      const sessionDate = new Date(session.timestamp);
       return sessionDate >= oneDayAgo;
     });
+    
+    // Create hourly breakdown for the last 24 hours
+    const hourlyData = [];
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(now.getTime() - (i + 1) * 60 * 60 * 1000);
+      const hourEnd = new Date(now.getTime() - i * 60 * 60 * 1000);
+      
+      const hourLabel = hourEnd.getHours() + ':00';
+      
+      const sessionsInHour = dailySessions.filter(session => {
+        const sessionTime = new Date(session.timestamp);
+        return sessionTime >= hourStart && sessionTime < hourEnd;
+      });
+      
+      hourlyData.unshift({
+        name: hourLabel,
+        value: sessionsInHour.length
+      });
+    }
     
     const weeklySessions = sessions.filter(session => {
       const sessionDate = new Date(session.date);
       return sessionDate >= oneWeekAgo;
     });
     
+    // Create daily breakdown for the last week
+    const weeklyData = [];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(now.getDate() - i);
+      dayStart.setHours(0, 0, 0, 0);
+      
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+      
+      const dayName = dayNames[dayStart.getDay()];
+      
+      const sessionsInDay = sessions.filter(session => {
+        const sessionTime = new Date(session.timestamp);
+        return sessionTime >= dayStart && sessionTime <= dayEnd;
+      });
+      
+      weeklyData.push({
+        name: dayName,
+        value: sessionsInDay.length
+      });
+    }
+    
     const monthlySessions = sessions.filter(session => {
       const sessionDate = new Date(session.date);
       return sessionDate >= oneMonthAgo;
     });
     
+    // Create daily breakdown for the last 30 days
+    const monthlyData = [];
+    
+    for (let i = 29; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(now.getDate() - i);
+      dayStart.setHours(0, 0, 0, 0);
+      
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+      
+      // Format as MM/DD
+      const dayLabel = `${dayStart.getMonth() + 1}/${dayStart.getDate()}`;
+      
+      const sessionsInDay = sessions.filter(session => {
+        const sessionTime = new Date(session.timestamp);
+        return sessionTime >= dayStart && sessionTime <= dayEnd;
+      });
+      
+      monthlyData.push({
+        name: dayLabel,
+        value: sessionsInDay.length
+      });
+    }
+    
+    // Create monthly breakdown for the entire year
+    const yearlyData = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Get current month and year
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    // Loop through the last 12 months
+    for (let i = 11; i >= 0; i--) {
+      // Calculate the month and year we're looking at
+      let monthIndex = currentMonth - i;
+      let yearToUse = currentYear;
+      
+      // Adjust for previous year if needed
+      if (monthIndex < 0) {
+        monthIndex += 12;
+        yearToUse -= 1;
+      }
+      
+      // Create date ranges for the month
+      const monthStart = new Date(yearToUse, monthIndex, 1, 0, 0, 0, 0);
+      const monthEnd = new Date(yearToUse, monthIndex + 1, 0, 23, 59, 59, 999); // Last day of month
+      
+      const monthLabel = monthNames[monthIndex];
+      
+      const sessionsInMonth = sessions.filter(session => {
+        const sessionTime = new Date(session.timestamp);
+        return sessionTime >= monthStart && sessionTime <= monthEnd;
+      });
+      
+      yearlyData.push({
+        name: monthLabel,
+        value: sessionsInMonth.length
+      });
+    }
+    
     // Calculate average sessions per week over the last month
     const weekCount = Math.ceil(30 / 7);
     const avgSessionsPerWeek = monthlySessions.length / weekCount;
+    
+    // Create weekly breakdown for the last 4 weeks with date ranges
+    const weeklyAverageData = [];
+    
+    for (let i = 0; i < 4; i++) {
+      // Calculate week start and end dates
+      const weekEndDate = new Date(now);
+      weekEndDate.setDate(now.getDate() - (i * 7));
+      
+      const weekStartDate = new Date(weekEndDate);
+      weekStartDate.setDate(weekEndDate.getDate() - 6);
+      
+      // Format as MM/DD - MM/DD
+      const weekLabel = `${weekStartDate.getMonth() + 1}/${weekStartDate.getDate()} - ${weekEndDate.getMonth() + 1}/${weekEndDate.getDate()}`;
+      
+      // Get sessions in this week
+      const sessionsInWeek = sessions.filter(session => {
+        const sessionTime = new Date(session.timestamp);
+        return sessionTime >= weekStartDate && sessionTime <= weekEndDate;
+      });
+      
+      // Calculate average per day for this week
+      const avgPerDay = sessionsInWeek.length / 7;
+      
+      weeklyAverageData.unshift({
+        name: weekLabel,
+        value: Math.round(avgPerDay * 10) / 10 // Round to 1 decimal place
+      });
+    }
     
     return {
       totalSessions: sessions.length,
       dailySessions: dailySessions.length,
       weeklySessions: weeklySessions.length,
       monthlySessions: monthlySessions.length,
-      avgSessionsPerWeek: avgSessionsPerWeek
+      avgSessionsPerWeek: avgSessionsPerWeek,
+      hourlyData: hourlyData,
+      weeklyData: weeklyData,
+      monthlyData: monthlyData,
+      yearlyData: yearlyData,
+      weeklyAverageData: weeklyAverageData
     };
   } catch (error) {
     console.error("Error getting training frequency stats:", error);
     throw error;
+  }
+};
+
+// Get the most recent training session
+export const getLastTrainingSession = async (userId) => {
+  try {
+    const sessionsRef = collection(db, "Users", userId, "sessions");
+    const q = query(sessionsRef, orderBy("timestamp", "desc"), limit(1));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+    
+    const sessionDoc = querySnapshot.docs[0];
+    const sessionData = sessionDoc.data();
+    
+    // Format the session data for display
+    return {
+      id: sessionDoc.id,
+      date: sessionData.date || sessionData.timestamp.toDate().toISOString().split('T')[0],
+      time: sessionData.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      duration: sessionData.duration || 0,
+      metrics: sessionData.metrics || {},
+      skillsChanged: sessionData.skillsChanged || []
+    };
+  } catch (error) {
+    console.error("Error getting last training session:", error);
+    return null;
   }
 };
 
