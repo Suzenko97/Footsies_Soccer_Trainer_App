@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../Config/firebase';
+import { saveCurrentSession } from '../Services/statService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faBars, 
@@ -12,7 +13,8 @@ import {
     faChartLine,
     faSignOutAlt,
     faInfoCircle,
-    faUserCircle
+    faUserCircle,
+    faFutbol
 } from '@fortawesome/free-solid-svg-icons';
 
 const Navigation = () => {
@@ -27,6 +29,10 @@ const Navigation = () => {
 
     const handleLogout = async () => {
         try {
+            if (auth.currentUser) {
+                console.log("Saving session before logout");
+                await saveCurrentSession(auth.currentUser.uid);
+            }
             await signOut(auth);
             navigate('/login');
         } catch (error) {
@@ -55,7 +61,14 @@ const Navigation = () => {
                         style={{ cursor: 'pointer' }}
                         onClick={() => navigate('/dashboard')}
                     >
-                        <img src="/favicon.ico" width="30" height="30" className="d-inline-block align-top me-2" alt="Footsies" />
+                        <FontAwesomeIcon 
+                            icon={faFutbol} 
+                            className="me-2" 
+                            style={{ 
+                                fontSize: '1.5rem', 
+                                color: '#28a745'
+                            }} 
+                        />
                         Footsies
                     </span>
                     <button 

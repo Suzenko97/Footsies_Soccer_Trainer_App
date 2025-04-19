@@ -5,10 +5,11 @@ import LoginPage from './Pages/LoginPage';
 import DashboardPage from './Pages/DashboardPage';
 import SignupPage from './Pages/SignupPage';
 import StatPage from './Pages/StatPage';
-import SkillTrainingPage from './Pages/SkillsTrainingPage';
+import SkillsTrainingPage from './Pages/SkillsTrainingPage';
 import AboutPage from './Pages/AboutPage';
 import ProfilePage from './Pages/ProfilePage';
 import Navigation from './Components/Navigation';
+import { initializeSession, saveCurrentSession } from './Services/statService';
 import './App.css';
 
 function App() {
@@ -16,16 +17,54 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      // If a user just logged in, initialize a new session
+      if (currentUser && !user) {
+        console.log("User logged in, initializing session");
+        initializeSession();
+      } 
+      // If a user is logging out, save their current session
+      else if (!currentUser && user) {
+        console.log("User logging out, saving session");
+        try {
+          const result = await saveCurrentSession(user.uid);
+          console.log("Session saved on logout:", result);
+        } catch (err) {
+          console.error("Error saving session on logout:", err);
+        }
+      }
+      
+      setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe();
-  }, []);
+    
+    // Initialize session on app start if user is already logged in
+    if (auth.currentUser) {
+      console.log("User already logged in on app start, initializing session");
+      initializeSession();
+    }
+    
+    // Handle app close/refresh
+    window.addEventListener('beforeunload', async (event) => {
+      if (auth.currentUser) {
+        console.log("App closing, saving session");
+        try {
+          await saveCurrentSession(auth.currentUser.uid);
+        } catch (err) {
+          console.error("Error saving session on app close:", err);
+        }
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+      window.removeEventListener('beforeunload', () => {});
+    };
+  }, [user]);
 
   if (loading) {
     return (
-      <div className="container d-flex justify-content-center align-items-center min-vh-100">
+      <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -57,7 +96,7 @@ function App() {
             />
             <Route 
               path="/skills" 
-              element={user ? <SkillTrainingPage /> : <Navigate to="/login" />} 
+              element={user ? <SkillsTrainingPage /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/stats" 

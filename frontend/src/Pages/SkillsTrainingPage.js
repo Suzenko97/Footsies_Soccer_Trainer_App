@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { auth } from "../Config/firebase";
-import { getUserProfile, updateUserSkills, updateUserProgress } from "../Services";
+import { useNavigate } from "react-router-dom";
+import { 
+    getUserProfile, 
+    updateUserSkills, 
+    updateUserProgress
+} from "../Services";
+import { recordSkillTraining, saveCurrentSession, initializeSession } from "../Services/statService";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGraduationCap, faDumbbell, faTasks, faRunning, faFutbol, faBullseye, faRandom, faLock, faClock, faStar, faPlay } from '@fortawesome/free-solid-svg-icons';
 
-const SkillTrainingPage = () => {
+const SkillsTrainingPage = () => {
     const navigate = useNavigate();
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -55,6 +60,14 @@ const SkillTrainingPage = () => {
         passing: [
             { id: 7, title: "Wall Passes", xp: 10, skillXp: 20, description: "Complete 50 wall passes accurately" },
             { id: 8, title: "Through Balls", xp: 15, skillXp: 25, description: "Practice through balls with moving targets" }
+        ],
+        defending: [
+            { id: 9, title: "Tackle Drills", xp: 12, skillXp: 22, description: "Practice proper tackling technique with a partner" },
+            { id: 10, title: "Defensive Positioning", xp: 15, skillXp: 25, description: "Work on defensive positioning and marking" }
+        ],
+        speed: [
+            { id: 11, title: "Acceleration Drills", xp: 12, skillXp: 22, description: "Practice explosive starts and quick direction changes" },
+            { id: 12, title: "Speed Ladder", xp: 15, skillXp: 25, description: "Complete speed ladder drills for quick footwork" }
         ]
     };
 
@@ -127,25 +140,32 @@ const SkillTrainingPage = () => {
         let updatedXpThreshold = userData.xpThreshold;
 
         if (updatedXP >= updatedXpThreshold) {
-            let overflowXp = updatedXP - updatedXpThreshold;
+            let overflowXP = updatedXP - updatedXpThreshold;
             updatedLevel += 1;
-            updatedXpThreshold += 20;
-            updatedXP = overflowXp;
+            updatedXpThreshold += 100;
+            updatedXP = overflowXP;
             addNotification(`Account leveled up to Level ${updatedLevel}!`);
         }
 
-        await updateUserSkills(auth.currentUser.uid, {
-            ...userData.skills,
-            [selectedSkill]: updatedSkillXP
-        }, {
-            ...userData.skillLevels,
-            [selectedSkill]: updatedSkillLevel
-        }, {
-            ...userData.skillThresholds,
-            [selectedSkill]: updatedSkillThreshold
-        });
-
+        await updateUserSkills(
+            auth.currentUser.uid, 
+            { ...userData.skills, [selectedSkill]: updatedSkillXP },
+            { ...userData.skillLevels, [selectedSkill]: updatedSkillLevel },
+            { ...userData.skillThresholds, [selectedSkill]: updatedSkillThreshold }
+        );
         await updateUserProgress(auth.currentUser.uid, updatedXP, updatedLevel, updatedXpThreshold);
+        
+        // Record this training to the current session
+        recordSkillTraining(
+            selectedSkill,
+            quest.skillXp,
+            quest.duration || 15
+        );
+        
+        // Don't save the session after each quest - we'll save it on logout instead
+        // console.log("Saving session after quest completion...");
+        // const sessionResult = await saveCurrentSession(auth.currentUser.uid);
+        // console.log("Session save result:", sessionResult);
         
         setUserData({ 
             ...userData, 
@@ -197,6 +217,8 @@ const SkillTrainingPage = () => {
                                                     <FontAwesomeIcon icon={skill === 'stamina' ? faRunning : 
                                                                   skill === 'dribbling' ? faFutbol : 
                                                                   skill === 'shooting' ? faBullseye : 
+                                                                  skill === 'defending' ? faDumbbell :
+                                                                  skill === 'speed' ? faRunning :
                                                                   faRandom} className="me-2"></FontAwesomeIcon>
                                                     {skill.charAt(0).toUpperCase() + skill.slice(1)}
                                                 </span>
@@ -209,17 +231,8 @@ const SkillTrainingPage = () => {
                                                     <small className="text-muted">Progress</small>
                                                     <small className="text-muted">{progress} / {threshold}</small>
                                                 </div>
-                                                <div className="progress" style={{ height: '8px' }}>
-                                                    <div 
-                                                        className="progress-bar" 
-                                                        role="progressbar" 
-                                                        style={{ width: `${progressPercentage}%` }}
-                                                        aria-valuenow={progressPercentage} 
-                                                        aria-valuemin="0" 
-                                                        aria-valuemax="100"
-                                                    >
-                                                        {progressPercentage > 10 && `${Math.round(progressPercentage)}%`}
-                                                    </div>
+                                                <div className="progress">
+                                                    <div className="progress-bar" role="progressbar" style={{width: `${progressPercentage}%`}} aria-valuenow={progressPercentage} aria-valuemin="0" aria-valuemax="100"></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -242,7 +255,7 @@ const SkillTrainingPage = () => {
                             <div className="row g-3">
                                 {trainingModules.map(module => (
                                     <div key={module.id} className="col-12">
-                                        <div className={`card ${!module.unlocked ? 'bg-light' : ''}`}>
+                                        <div className={`card ${module.unlocked ? '' : 'bg-light'}`}>
                                             <div className="card-body">
                                                 <h5 className="card-title">
                                                     {module.title}
@@ -328,4 +341,4 @@ const SkillTrainingPage = () => {
     );
 };
 
-export default SkillTrainingPage;
+export default SkillsTrainingPage;

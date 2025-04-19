@@ -8,7 +8,8 @@ Technologies used so far:
     Concurrently (not a full tool but useful to enable easy start)
     Node
     Firebase (For db and login)
-    React Roter Dom
+    React Router Dom (frontend)
+    Recharts (frontend)
 
 
     ***DB ACCESS RULES UPDATED AS OF 03/02/25***
