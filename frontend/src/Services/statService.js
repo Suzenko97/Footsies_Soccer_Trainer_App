@@ -370,72 +370,129 @@ export const getSkillImbalanceAnalysis = async (userId) => {
     }
     
     const userData = userDoc.data();
-    const skills = userData.skills || {};
-    const skillLevels = userData.skillLevels || {};
+    console.log("DEBUG - User data in getSkillImbalanceAnalysis:", userData);
     
-    // Check if there are any skills with values
-    const skillValues = Object.values(skills);
-    if (skillValues.length === 0) {
+    // Use skillLevels instead of raw XP values
+    const skillLevels = userData.skillLevels || {};
+    console.log("DEBUG - Skill levels data:", skillLevels);
+    
+    // Get raw XP values for reference
+    const skills = userData.skills || {};
+    console.log("DEBUG - Skills XP data:", skills);
+    
+    // Check if there are any skills with levels
+    const skillEntries = Object.entries(skillLevels);
+    console.log("DEBUG - Skill level entries:", skillEntries);
+    
+    if (skillEntries.length === 0) {
       return {
         avgSkillLevel: 0,
-        strongestSkill: { name: "None", value: 0 },
-        weakestSkill: { name: "None", value: 0 },
+        strongestSkill: { name: "None", value: 0, level: 0 },
+        weakestSkill: { name: "None", value: 0, level: 0 },
         imbalanceScore: 0,
-        skillDeviations: {}
+        skillDeviations: {},
+        imbalanceMessage: "No skills trained yet."
       };
     }
     
     // Calculate average skill level
+    const skillValues = skillEntries.map(([_, level]) => level);
     const avgSkillLevel = skillValues.reduce((sum, val) => sum + val, 0) / skillValues.length;
     
-    // Find strongest and weakest skills
-    let strongestSkill = { name: "None", value: -Infinity };
-    let weakestSkill = { name: "None", value: Infinity };
+    // Group skills by level to handle ties
+    const skillsByLevel = {};
+    Object.entries(skillLevels).forEach(([name, level]) => {
+      if (!skillsByLevel[level]) {
+        skillsByLevel[level] = [];
+      }
+      skillsByLevel[level].push({ name, level, value: skills[name] || 0 });
+    });
     
-    Object.entries(skills).forEach(([name, value]) => {
-      // Only consider skills that have been trained (value > 0)
-      if (value > 0) {
-        if (value > strongestSkill.value) {
-          strongestSkill = { 
-            name, 
-            value,
-            level: skillLevels[name] || 1
-          };
-        }
-        if (value < weakestSkill.value) {
-          weakestSkill = { 
-            name, 
-            value,
-            level: skillLevels[name] || 1
-          };
+    // Find highest and lowest levels
+    const levels = Object.keys(skillsByLevel).map(Number).sort((a, b) => b - a);
+    const highestLevel = levels[0];
+    
+    // Find lowest level that has been trained (value > 0)
+    let lowestLevel = levels[levels.length - 1];
+    for (const level of levels.slice().reverse()) {
+      const hasTrainedSkill = skillsByLevel[level].some(skill => skill.value > 0);
+      if (hasTrainedSkill) {
+        lowestLevel = level;
+        break;
+      }
+    }
+    
+    console.log(`DEBUG - Highest level: ${highestLevel}, Lowest level: ${lowestLevel}`);
+    console.log(`DEBUG - Skills by level:`, skillsByLevel);
+    
+    // For strongest skill, if there's a tie at the highest level, use the one with most XP
+    let strongestSkill = { name: "None", value: 0, level: 0 };
+    if (skillsByLevel[highestLevel]) {
+      strongestSkill = skillsByLevel[highestLevel].reduce((strongest, current) => {
+        return current.value > strongest.value ? current : strongest;
+      }, { name: "None", value: -Infinity, level: 0 });
+    }
+    
+    // For weakest skill, if there's a tie at the lowest level, use the one with least XP
+    let weakestSkill = { name: "None", value: 0, level: 0 };
+    
+    // Only consider skills that have been trained (value > 0)
+    const trainedSkillsAtLowestLevel = skillsByLevel[lowestLevel]?.filter(skill => skill.value > 0) || [];
+    
+    if (trainedSkillsAtLowestLevel.length > 0) {
+      weakestSkill = trainedSkillsAtLowestLevel.reduce((weakest, current) => {
+        return current.value < weakest.value ? current : weakest;
+      }, { name: "None", value: Infinity, level: lowestLevel });
+    } else {
+      // If no skills have been trained at the lowest level, check other levels
+      for (const level of levels.slice().reverse()) {
+        const trainedSkills = skillsByLevel[level]?.filter(skill => skill.value > 0) || [];
+        if (trainedSkills.length > 0) {
+          weakestSkill = trainedSkills.reduce((weakest, current) => {
+            return current.value < weakest.value ? current : weakest;
+          }, { name: "None", value: Infinity, level });
+          break;
         }
       }
-    });
-    
-    // If no skills have been trained yet, set default values
-    if (strongestSkill.value === -Infinity) {
-      strongestSkill = { name: "None", value: 0, level: 0 };
     }
     
-    if (weakestSkill.value === Infinity) {
-      weakestSkill = { name: "None", value: 0, level: 0 };
-    }
+    console.log("DEBUG - Final strongest skill:", strongestSkill);
+    console.log("DEBUG - Final weakest skill:", weakestSkill);
     
-    // Calculate imbalance score (difference between strongest and weakest)
-    const imbalanceScore = strongestSkill.value - weakestSkill.value;
-    
-    // Calculate deviation from average for each skill
+    // Calculate skill deviations and imbalance score
     const skillDeviations = {};
-    Object.entries(skills).forEach(([name, value]) => {
-      skillDeviations[name] = value - avgSkillLevel;
+    let totalDeviation = 0;
+    
+    Object.entries(skillLevels).forEach(([name, level]) => {
+      const deviation = Math.abs(level - avgSkillLevel);
+      skillDeviations[name] = deviation;
+      totalDeviation += deviation;
     });
+    
+    // Calculate imbalance score (0-100)
+    // Higher score means more imbalance
+    const maxPossibleDeviation = avgSkillLevel * skillEntries.length;
+    const imbalanceScore = maxPossibleDeviation > 0 
+      ? Math.min(100, (totalDeviation / maxPossibleDeviation) * 100) 
+      : 0;
+    
+    // Generate imbalance message
+    let imbalanceMessage = "";
+    if (imbalanceScore > 50) {
+      imbalanceMessage = `Significant imbalance detected! Consider focusing on your ${weakestSkill.name} skill to improve balance.`;
+    } else if (imbalanceScore > 20) {
+      imbalanceMessage = `Moderate imbalance detected. Consider focusing on your ${weakestSkill.name} skill to improve balance.`;
+    } else {
+      imbalanceMessage = "Good balance between skills.";
+    }
     
     return {
       avgSkillLevel,
       strongestSkill,
       weakestSkill,
       imbalanceScore,
-      skillDeviations
+      skillDeviations,
+      imbalanceMessage
     };
   } catch (error) {
     console.error("Error getting skill imbalance analysis:", error);
@@ -445,7 +502,8 @@ export const getSkillImbalanceAnalysis = async (userId) => {
       strongestSkill: { name: "None", value: 0, level: 0 },
       weakestSkill: { name: "None", value: 0, level: 0 },
       imbalanceScore: 0,
-      skillDeviations: {}
+      skillDeviations: {},
+      imbalanceMessage: "Error analyzing skills."
     };
   }
 };

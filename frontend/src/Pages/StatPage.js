@@ -31,7 +31,12 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
 } from 'recharts';
 
 const StatPage = () => {
@@ -320,24 +325,37 @@ const StatPage = () => {
                                                     <p className="text-muted">No skills trained yet</p>
                                                 )}
                                             </div>
-                                            {imbalanceAnalysis.strongestSkill.name !== "None" && imbalanceAnalysis.weakestSkill.name !== "None" && (
-                                                <div className="col-12 mt-3">
-                                                    <div className="alert" style={{ backgroundColor: 'var(--teal-light)', color: 'var(--teal-dark)' }}>
-                                                        <small>
-                                                            {imbalanceAnalysis.imbalanceScore > 50 ? (
-                                                                <strong>Significant imbalance detected!</strong>
-                                                            ) : imbalanceAnalysis.imbalanceScore > 20 ? (
-                                                                <strong>Moderate imbalance detected.</strong>
-                                                            ) : (
-                                                                <strong>Good balance between skills.</strong>
-                                                            )}
-                                                            {imbalanceAnalysis.imbalanceScore > 20 && (
-                                                                <> Consider focusing on your {imbalanceAnalysis.weakestSkill.name} skill to improve balance.</>
-                                                            )}
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            
+                                            {/* Radar Chart for Skill Distribution */}
+                                            <div className="col-12 mt-3">
+                                                <h6 className="text-center mb-3">Skill Distribution</h6>
+                                                <ResponsiveContainer width="100%" height={300}>
+                                                    <RadarChart outerRadius={120} data={skillStats}>
+                                                        <PolarGrid gridType="circle" />
+                                                        <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--teal-dark)' }} />
+                                                        <PolarRadiusAxis 
+                                                            angle={30} 
+                                                            domain={[0, 10]}
+                                                            axisLine={false}
+                                                            tick={{ fill: 'var(--teal-dark)' }}
+                                                        />
+                                                        <Radar
+                                                            name="Skills"
+                                                            dataKey="value"
+                                                            stroke="var(--teal-primary)"
+                                                            fill="var(--teal-primary)"
+                                                            fillOpacity={0.7}
+                                                            strokeWidth={2}
+                                                        />
+                                                        <Tooltip 
+                                                            contentStyle={{ 
+                                                                backgroundColor: 'white', 
+                                                                borderColor: 'var(--teal-primary)' 
+                                                            }} 
+                                                        />
+                                                    </RadarChart>
+                                                </ResponsiveContainer>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="text-center py-3">
@@ -461,7 +479,7 @@ const StatPage = () => {
                                                     >
                                                         <CartesianGrid strokeDasharray="3 3" />
                                                         <XAxis dataKey="date" />
-                                                        <YAxis domain={[0, 100]} />
+                                                        <YAxis domain={[0, 10]} />
                                                         <Tooltip />
                                                         <Legend />
                                                         <Line 
