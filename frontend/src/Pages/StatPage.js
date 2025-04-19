@@ -554,6 +554,26 @@ const StatPage = () => {
                                                 </RadarChart>
                                             </ResponsiveContainer>
                                         </div>
+                                        
+                                        {/* Imbalance Message */}
+                                        <div className="col-12 mt-3">
+                                            <div className={`alert ${imbalanceAnalysis.imbalanceScore > 50 ? 'alert-danger' : imbalanceAnalysis.imbalanceScore > 20 ? 'alert-warning' : 'alert-success'}`}>
+                                                <div className="d-flex align-items-center">
+                                                    <FontAwesomeIcon 
+                                                        icon={faExclamationTriangle} 
+                                                        className="me-2" 
+                                                        style={{ 
+                                                            color: imbalanceAnalysis.imbalanceScore > 50 ? 'var(--danger)' : 
+                                                                   imbalanceAnalysis.imbalanceScore > 20 ? 'var(--warning)' : 'var(--success)'
+                                                        }} 
+                                                    />
+                                                    <div>
+                                                        <p className="mb-1"><strong>Imbalance Score: {imbalanceAnalysis.imbalanceScore.toFixed(1)}/100</strong></p>
+                                                        <p className="mb-0">{imbalanceAnalysis.imbalanceMessage}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="text-center py-3">
@@ -576,8 +596,8 @@ const StatPage = () => {
                             <div>
                                 {recommendations.map((rec, index) => (
                                     <div key={index} className="alert mb-2" style={{ backgroundColor: 'var(--teal-light)', color: 'var(--teal-dark)' }}>
-                                        <p className="mb-1"><strong>{rec.title}</strong></p>
-                                        <small>{rec.description}</small>
+                                        <p className="mb-1"><strong>{rec.message}</strong></p>
+                                        <small>{rec.actionable}</small>
                                     </div>
                                 ))}
                             </div>
