@@ -1,0 +1,89 @@
+# Footsies Soccer Trainer App - Recommendation System
+
+## Overview
+The recommendation system in the Footsies Soccer Trainer App provides personalized training suggestions to help players improve their skills effectively. The system analyzes training patterns, skill levels, and progress to generate actionable recommendations.
+
+## Components and Data Sources
+The recommendation system relies on several data sources:
+
+1. **Training Frequency Stats**: Historical data about how often a player trains
+2. **Skill Imbalance Analysis**: Assessment of disparities between different skill levels
+3. **Time Since Last Improvement**: Tracking of stagnation in specific skills
+4. **User Profile**: Current skill levels and training preferences
+
+## Recommendation Generation Process
+
+### General Training Recommendations
+The `generateTrainingRecommendations` function creates personalized recommendations through the following process:
+
+1. **Data Collection**:
+   - Retrieves training frequency statistics
+   - Gets time since last improvement for each skill
+   - Obtains skill imbalance analysis
+
+2. **Frequency-Based Recommendations**:
+   - Analyzes average sessions per week
+   - Recommends increased training frequency if below optimal level (3 sessions/week)
+   - Example: "Increase your training frequency to at least 3 sessions per week for optimal improvement."
+
+3. **Imbalance-Based Recommendations**:
+   - Evaluates the skill imbalance score
+   - If imbalance score > 20, suggests focusing on weaker skills
+   - Specifically identifies the weakest skill that needs attention
+   - Example: "Your defending skill is significantly lower than your dribbling skill."
+
+4. **Stagnation Detection**:
+   - Identifies skills that haven't improved in over 14 days
+   - Escalates priority for skills without improvement for over 30 days
+   - Example: "It's been 21 days since you improved your passing skill."
+
+5. **Priority Assignment**:
+   - Assigns priority levels (high, medium, low) to each recommendation
+   - Sorts recommendations by priority to present most important ones first
+
+### Skill-Specific Recommendations
+The `generateSkillRecommendations` function provides targeted advice for individual skills:
+
+1. **Skill-Specific Drills**:
+   - Maintains a database of effective training drills for each skill
+   - For dribbling: Cone weaving, close control exercises
+   - For shooting: Target practice, power shots
+   - For passing: Wall passes, partner passing drills
+   - For defending: Shadow defending, tackle timing
+   - For speed: Sprint intervals, agility ladder exercises
+   - For stamina: Endurance runs, HIIT training
+
+2. **Improvement Timeline Analysis**:
+   - Analyzes how long it's been since improvement in the specific skill
+   - Provides more urgent recommendations for long-stagnant skills
+   - Example: "Dedicate more time to speed training this week."
+
+## Recommendation Presentation
+Each recommendation contains:
+
+1. **Type**: Categorizes the recommendation (frequency, imbalance, stagnation, drill)
+2. **Priority**: Indicates importance (high, medium, low)
+3. **Message**: Concise statement of the issue or suggestion
+4. **Actionable**: Specific action the player can take to address the issue
+
+## Integration with User Interface
+Recommendations are displayed in:
+
+1. **Dashboard**: High-priority recommendations appear prominently
+2. **Skill Detail Pages**: Skill-specific recommendations
+3. **Training Planning**: Suggestions for upcoming training sessions
+
+## Continuous Improvement
+The recommendation system improves over time by:
+
+1. **Analyzing Training Outcomes**: Evaluating which recommendations led to improvement
+2. **User Feedback**: Incorporating player feedback on recommendation effectiveness
+3. **Data Pattern Recognition**: Identifying successful training patterns across users
+
+## Technical Implementation
+The recommendation system is implemented in the `recommendationService.js` file, which:
+
+1. Imports necessary data from the `statService.js` module
+2. Provides asynchronous functions that return recommendation arrays
+3. Handles errors gracefully to prevent disruption to the user experience
+4. Prioritizes recommendations to avoid overwhelming the user

@@ -10,6 +10,7 @@ Technologies used so far:
     Firebase (For db and login)
     React Router Dom (frontend)
     Recharts (frontend)
+    FontAwesome (frontend)
 
 
     ***DB ACCESS RULES UPDATED AS OF 03/02/25***

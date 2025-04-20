@@ -1,0 +1,69 @@
+# Footsies Soccer Trainer App - Services Documentation
+
+## Services Folder Overview
+
+The `Services` folder in the Footsies Soccer Trainer App contains modules that handle data operations, API calls, and business logic separate from the UI components. This separation of concerns follows best practices for maintainable React applications.
+
+### Purpose and Organization
+
+The Services folder serves as a centralized location for:
+
+1. **Data Access Layer**: Interfaces with Firebase and other external data sources
+2. **Business Logic**: Implements complex calculations and data transformations
+3. **State Management**: Manages application-wide state that isn't tied to specific components
+4. **Reusable Functions**: Provides utility functions that can be used across multiple components
+
+### Key Service Modules
+
+#### statService.js
+
+The `statService.js` file handles all training session-related functionality:
+
+- **Session Tracking**: Records and manages training sessions
+- **Skill Progress**: Calculates and retrieves skill development over time
+- **Performance Analytics**: Generates statistics and insights about training performance
+- **Data Visualization Support**: Prepares data for charts and graphs
+- **Skill Imbalance Analysis**: Identifies areas for improvement in skill development
+
+Key functions include:
+- `initializeSession`: Starts a new training session
+- `recordSkillTraining`: Logs skill development during a session
+- `saveCurrentSession`: Persists session data to Firebase
+- `createSessionFromFormData`: Creates a session from manually entered form data
+- `getSkillProgressStats`: Retrieves skill progress data for visualization
+- `getSkillImbalanceAnalysis`: Analyzes balance between different skills
+
+#### userService.js
+
+The `userService.js` file manages user-related operations:
+
+- **Authentication**: Handles user login, signup, and authentication state
+- **User Profile**: Manages user profile data and preferences
+- **Progress Tracking**: Tracks overall user progress and achievements
+
+#### recommendationService.js
+
+The `recommendationService.js` file provides personalized training recommendations:
+
+- **Training Suggestions**: Generates personalized training recommendations
+- **Improvement Areas**: Identifies skills that need more focus
+- **Progress Analysis**: Analyzes training patterns to suggest optimal training schedules
+
+### Integration with Components
+
+Components in the Pages and Components folders import and use these services to:
+1. Fetch data to display
+2. Submit user input for processing
+3. Perform calculations without cluttering component code
+4. Maintain consistent business logic across the application
+
+### Best Practices
+
+When working with the Services folder:
+1. Keep UI logic separate from business logic
+2. Maintain a clear separation between different service responsibilities
+3. Use consistent error handling and logging
+4. Document complex functions and algorithms
+5. Write unit tests for critical service functions
+
+This architecture ensures the application remains maintainable as it grows and makes it easier to implement new features or modify existing ones.

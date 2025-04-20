@@ -1,0 +1,132 @@
+# Footsies Soccer Trainer App - Session Recording System
+
+## Overview
+The Footsies Soccer Trainer App offers two methods for recording training sessions: automatic session tracking during app usage and manual session entry through a form. This dual approach provides flexibility for users to track both real-time training and past sessions.
+
+## Automatic Session Recording
+
+### Session Initialization
+Automatic session tracking begins when:
+- A user logs into the app
+- The app starts if a user is already logged in
+- The `initializeSession()` function is called
+
+The system creates a session object with:
+```javascript
+{
+  startTime: new Date(),
+  metrics: {},
+  skillsChanged: [],
+  totalDuration: 0,
+  title: 'Training Session',
+  skillsFocus: 'general',
+  intensity: 5,
+  notes: ''
+}
+```
+
+### Skill Training Recording
+During interactive training in the app:
+1. The `recordSkillTraining(skillName, xpGained, duration)` function is called
+2. If no active session exists, one is automatically initialized
+3. The skill is added to the session's metrics or updated if already present
+4. The skill is added to the `skillsChanged` array if it's the first time being recorded
+5. The session's total duration is updated
+
+### Session Saving
+Automatic sessions are saved:
+- When the user logs out
+- When the app is closed/refreshed (via beforeunload event)
+- Periodically during extended training sessions
+- When explicitly triggered by certain actions
+
+The saving process:
+1. Checks if there are any skills that changed during the session
+2. Prevents duplicate saves within a 5-second window
+3. Creates a Firestore document with session data
+4. Updates the user's total sessions count
+
+## Manual Session Recording
+
+### Session Form
+Users can manually record past training sessions using the SessionForm component, which collects:
+- Session title
+- Duration (in minutes)
+- Date (can be in the past)
+- Primary skill focus
+- Intensity rating (1-10)
+- Performance ratings for all six skills (0-10)
+- Notes about the session
+
+### Form Data Processing
+When a manual session is submitted:
+1. The `createSessionFromFormData(userId, formData)` function is called
+2. The date from the form is parsed and normalized to noon to avoid timezone issues
+3. A new session is initialized with the form's metadata (title, focus, intensity, notes)
+4. The custom date is added to the session
+5. Each skill with a rating > 0 is processed:
+   - The rating (0-10) is converted to XP (rating × 10)
+   - The skill is recorded using the same `recordSkillTraining` function used by automatic tracking
+6. The session is saved to Firestore using the same `saveCurrentSession` function
+
+## Key Differences Between Automatic and Manual Recording
+
+### Timing
+- **Automatic**: Records in real-time as skills are practiced
+- **Manual**: Allows recording sessions from the past with a specific date
+
+### Skill XP Calculation
+- **Automatic**: XP is calculated based on actual performance in the app's training modules
+- **Manual**: XP is derived from self-reported ratings (rating × 10)
+
+### Duration Tracking
+- **Automatic**: Accumulates duration as activities are performed
+- **Manual**: Uses a single user-specified duration value
+
+### Data Granularity
+- **Automatic**: May capture more detailed metrics about specific exercises
+- **Manual**: Provides a higher-level summary of the entire session
+
+## Data Structure
+Both automatic and manual sessions are stored in the same format in Firestore:
+```javascript
+{
+  timestamp: Timestamp,
+  date: "YYYY-MM-DD",
+  startTime: Timestamp,
+  endTime: Timestamp,
+  duration: Number,
+  metrics: {
+    dribbling: Number,
+    shooting: Number,
+    passing: Number,
+    stamina: Number,
+    speed: Number,
+    defending: Number
+  },
+  skillsChanged: Array,
+  title: String,
+  skillsFocus: String,
+  intensity: Number,
+  notes: String
+}
+```
+
+## Integration with Analytics
+Both automatic and manual sessions contribute equally to:
+- Skill progress charts
+- Training frequency statistics
+- Skill imbalance analysis
+- Recommendations
+
+## Best Practices
+1. **Automatic Recording**: Best for tracking structured training within the app
+2. **Manual Recording**: Ideal for:
+   - Recording physical training sessions outside the app
+   - Logging past sessions that weren't tracked
+   - Supplementing automatic tracking with additional context
+
+3. **Combined Approach**: For optimal results, users should:
+   - Use automatic tracking for app-based training
+   - Manually record external physical training
+   - Provide detailed notes for context
