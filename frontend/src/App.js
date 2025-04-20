@@ -8,6 +8,7 @@ import StatPage from './Pages/StatPage';
 import SkillsTrainingPage from './Pages/SkillsTrainingPage';
 import AboutPage from './Pages/AboutPage';
 import ProfilePage from './Pages/ProfilePage';
+import VideoTutorialsPage from './Pages/VideoTutorialsPage';
 import Navigation from './Components/Navigation';
 import { initializeSession, saveCurrentSession } from './Services/statService';
 import './App.css';
@@ -105,6 +106,10 @@ function App() {
             <Route 
               path="/profile" 
               element={user ? <ProfilePage /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/tutorials" 
+              element={user ? <VideoTutorialsPage /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/about" 

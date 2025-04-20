@@ -20,13 +20,18 @@ let currentSession = null;
 let lastSaveTime = 0; // Track the last time a session was saved
 
 // Initialize a new session for the current login
-export const initializeSession = () => {
-  console.log("Initializing new training session");
+export const initializeSession = (options = {}) => {
+  console.log("Initializing new training session with options:", options);
   currentSession = {
     startTime: new Date(),
     metrics: {},
     skillsChanged: [],
-    totalDuration: 0
+    totalDuration: 0,
+    // Add new fields from Jean-Branch
+    title: options.title || 'Training Session',
+    skillsFocus: options.skillsFocus || 'general',
+    intensity: options.intensity || 5,
+    notes: options.notes || ''
   };
   console.log("Session initialized:", currentSession);
 };
@@ -95,12 +100,16 @@ export const saveCurrentSession = async (userId) => {
     // Create a copy of the current session data to save
     const session = {
       timestamp,
-      date: timestamp.toDate().toISOString().split('T')[0],
-      startTime: Timestamp.fromDate(currentSession.startTime),
+      date: currentSession.date || timestamp.toDate().toISOString().split('T')[0],
+      startTime: currentSession.customStartTime || Timestamp.fromDate(currentSession.startTime),
       endTime: timestamp,
       duration: currentSession.totalDuration,
       metrics: {...currentSession.metrics},
-      skillsChanged: [...currentSession.skillsChanged]
+      skillsChanged: [...currentSession.skillsChanged],
+      title: currentSession.title,
+      skillsFocus: currentSession.skillsFocus,
+      intensity: currentSession.intensity,
+      notes: currentSession.notes
     };
     
     console.log("Session data to save:", session);
@@ -221,10 +230,10 @@ export const getTrainingFrequencyStats = async (userId) => {
     }));
     
     // Calculate daily, weekly, and monthly counts
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const currentDate = new Date();
+    const oneDayAgo = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     const dailySessions = sessions.filter(session => {
       const sessionDate = new Date(session.timestamp);
@@ -234,8 +243,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     // Create hourly breakdown for the last 24 hours
     const hourlyData = [];
     for (let i = 0; i < 24; i++) {
-      const hourStart = new Date(now.getTime() - (i + 1) * 60 * 60 * 1000);
-      const hourEnd = new Date(now.getTime() - i * 60 * 60 * 1000);
+      const hourStart = new Date(currentDate.getTime() - (i + 1) * 60 * 60 * 1000);
+      const hourEnd = new Date(currentDate.getTime() - i * 60 * 60 * 1000);
       
       const hourLabel = hourEnd.getHours() + ':00';
       
@@ -260,8 +269,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(now);
-      dayStart.setDate(now.getDate() - i);
+      const dayStart = new Date(currentDate);
+      dayStart.setDate(currentDate.getDate() - i);
       dayStart.setHours(0, 0, 0, 0);
       
       const dayEnd = new Date(dayStart);
@@ -289,8 +298,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     const monthlyData = [];
     
     for (let i = 29; i >= 0; i--) {
-      const dayStart = new Date(now);
-      dayStart.setDate(now.getDate() - i);
+      const dayStart = new Date(currentDate);
+      dayStart.setDate(currentDate.getDate() - i);
       dayStart.setHours(0, 0, 0, 0);
       
       const dayEnd = new Date(dayStart);
@@ -315,8 +324,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
     // Get current month and year
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     
     // Loop through the last 12 months
     for (let i = 11; i >= 0; i--) {
@@ -356,8 +365,8 @@ export const getTrainingFrequencyStats = async (userId) => {
     
     for (let i = 0; i < 4; i++) {
       // Calculate week start and end dates
-      const weekEndDate = new Date(now);
-      weekEndDate.setDate(now.getDate() - (i * 7));
+      const weekEndDate = new Date(currentDate);
+      weekEndDate.setDate(currentDate.getDate() - (7 * (4 - i)));
       
       const weekStartDate = new Date(weekEndDate);
       weekStartDate.setDate(weekEndDate.getDate() - 6);
@@ -419,7 +428,11 @@ export const getLastTrainingSession = async (userId) => {
       time: sessionData.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       duration: sessionData.duration || 0,
       metrics: sessionData.metrics || {},
-      skillsChanged: sessionData.skillsChanged || []
+      skillsChanged: sessionData.skillsChanged || [],
+      title: sessionData.title || '',
+      skillsFocus: sessionData.skillsFocus || '',
+      intensity: sessionData.intensity || 0,
+      notes: sessionData.notes || ''
     };
   } catch (error) {
     console.error("Error getting last training session:", error);
@@ -430,53 +443,253 @@ export const getLastTrainingSession = async (userId) => {
 // Get skill progress over time
 export const getSkillProgressStats = async (userId) => {
   try {
+    console.log("Fetching skill progress stats for user:", userId);
     const sessionsRef = collection(db, "Users", userId, "sessions");
-    const querySnapshot = await getDocs(query(sessionsRef, orderBy("timestamp", "asc")));
     
-    const sessions = querySnapshot.docs.map(doc => ({
+    // Get all sessions, ordered by timestamp
+    const sessionsQuery = query(
+      sessionsRef,
+      orderBy("timestamp", "desc"),
+      limit(30) // Get last 30 sessions for analysis
+    );
+    
+    const sessionsSnapshot = await getDocs(sessionsQuery);
+    const sessions = sessionsSnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data(),
-      date: doc.data().date || doc.data().timestamp.toDate().toISOString().split('T')[0]
+      ...doc.data()
     }));
     
-    // Group sessions by skill and calculate rolling averages
-    const skillProgress = {};
-    const skills = ['dribbling', 'shooting', 'passing', 'defending', 'speed', 'stamina'];
+    console.log("Retrieved sessions:", sessions.length);
     
-    skills.forEach(skill => {
-      const skillSessions = sessions.filter(session => 
-        session.sessionType === skill || 
-        (session.metrics && session.metrics[skill])
-      );
+    // Process sessions to get skill progress data
+    const skillProgressData = {
+      // For progress charts (used in line charts)
+      monthlyProgress: [], // We'll keep the name for backward compatibility, but use daily data
       
-      if (skillSessions.length > 0) {
-        // Calculate 3-point rolling average
-        const rollingAverages = [];
-        for (let i = 0; i < skillSessions.length; i++) {
-          const startIdx = Math.max(0, i - 2);
-          const pointsToAverage = skillSessions.slice(startIdx, i + 1);
-          const sum = pointsToAverage.reduce((acc, session) => {
-            return acc + (session.metrics && session.metrics[skill] ? session.metrics[skill] : 0);
-          }, 0);
-          const avg = sum / pointsToAverage.length;
-          
-          rollingAverages.push({
-            date: skillSessions[i].date,
-            value: avg,
-            raw: skillSessions[i].metrics && skillSessions[i].metrics[skill] ? skillSessions[i].metrics[skill] : 0
-          });
-        }
-        
-        skillProgress[skill] = rollingAverages;
+      // For daily progress in the last week (used in skills tab)
+      lastWeek: [],
+      
+      // For weekly progress in the last month
+      lastMonth: [],
+      
+      // Raw session data
+      sessions: sessions
+    };
+    
+    // Always use daily grouping for more detailed charts
+    console.log("Using daily grouping for all sessions");
+    
+    // Generate daily progress data
+    const dailyData = {};
+    
+    // Get the date range - last 30 days
+    const currentDate = new Date();
+    const thirtyDaysAgo = new Date(currentDate);
+    thirtyDaysAgo.setDate(currentDate.getDate() - 30);
+    
+    // Create empty data points for each day in the range
+    for (let d = new Date(thirtyDaysAgo); d <= currentDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      dailyData[dateStr] = {
+        date: `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`,
+        fullDate: dateStr,
+        month: d.toLocaleString('default', { month: 'short' }),
+        day: d.getDate(),
+        year: d.getFullYear(),
+        dribbling: 0,
+        shooting: 0,
+        passing: 0,
+        defending: 0,
+        stamina: 0,
+        speed: 0
+      };
+    }
+    
+    // Fill in the data from sessions
+    sessions.forEach(session => {
+      // Ensure session has a valid date
+      if (!session.date) {
+        console.log("Session missing date:", session.id);
+        return;
+      }
+      
+      const sessionDate = new Date(session.date);
+      if (isNaN(sessionDate.getTime())) {
+        console.log("Invalid date in session:", session.id, session.date);
+        return;
+      }
+      
+      // Skip sessions older than 30 days
+      if (sessionDate < thirtyDaysAgo) {
+        console.log("Skipping old session:", session.id, session.date);
+        return;
+      }
+      
+      const dayKey = session.date; // Use YYYY-MM-DD format
+      
+      // If we don't have this date in our data (shouldn't happen with the initialization above)
+      if (!dailyData[dayKey]) {
+        console.log("Creating missing date entry:", dayKey);
+        dailyData[dayKey] = {
+          date: `${sessionDate.toLocaleString('default', { month: 'short' })} ${sessionDate.getDate()}`,
+          fullDate: dayKey,
+          month: sessionDate.toLocaleString('default', { month: 'short' }),
+          day: sessionDate.getDate(),
+          year: sessionDate.getFullYear(),
+          dribbling: 0,
+          shooting: 0,
+          passing: 0,
+          defending: 0,
+          stamina: 0,
+          speed: 0
+        };
+      }
+      
+      // Add skill progress from this session
+      if (session.metrics) {
+        Object.entries(session.metrics).forEach(([skill, value]) => {
+          if (dailyData[dayKey][skill] !== undefined) {
+            dailyData[dayKey][skill] += value;
+          }
+        });
       } else {
-        skillProgress[skill] = [];
+        console.log("Session missing metrics:", session.id);
       }
     });
     
-    return skillProgress;
+    // Convert to array and sort by date
+    skillProgressData.monthlyProgress = Object.values(dailyData)
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        if (a.month !== b.month) {
+          const monthA = new Date(Date.parse(`${a.month} 1, 2000`)).getMonth();
+          const monthB = new Date(Date.parse(`${b.month} 1, 2000`)).getMonth();
+          return monthA - monthB;
+        }
+        return a.day - b.day;
+      });
+    
+    console.log("Progress data processed:", skillProgressData.monthlyProgress.length, "data points");
+    
+    // Generate last week data (daily)
+    const weekStartDate = new Date();
+    const lastWeekDates = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(weekStartDate);
+      date.setDate(weekStartDate.getDate() - (6 - i));
+      return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    });
+    
+    // Create a map for days of the week
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Initialize last week data with zeros
+    skillProgressData.lastWeek = lastWeekDates.map(date => {
+      const dayDate = new Date(date);
+      return {
+        date: daysOfWeek[dayDate.getDay()],
+        fullDate: date,
+        minutes: 0,
+        skills: {
+          dribbling: 0,
+          shooting: 0,
+          passing: 0,
+          defending: 0,
+          stamina: 0,
+          speed: 0
+        }
+      };
+    });
+    
+    // Fill in last week data from sessions
+    sessions.forEach(session => {
+      const sessionDate = session.date;
+      const dayIndex = lastWeekDates.indexOf(sessionDate);
+      
+      if (dayIndex !== -1) {
+        // Add duration
+        skillProgressData.lastWeek[dayIndex].minutes += session.duration || 0;
+        
+        // Add skill progress
+        if (session.metrics) {
+          Object.entries(session.metrics).forEach(([skill, value]) => {
+            if (skillProgressData.lastWeek[dayIndex].skills[skill] !== undefined) {
+              skillProgressData.lastWeek[dayIndex].skills[skill] += value;
+            }
+          });
+        } else {
+          console.log("Session missing metrics:", session.id);
+        }
+      }
+    });
+    
+    // Generate last month data (weekly)
+    const lastMonthWeeks = Array.from({ length: 4 }, (_, i) => {
+      const startDate = new Date(weekStartDate);
+      startDate.setDate(weekStartDate.getDate() - (7 * (4 - i)));
+      
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      
+      return {
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        week: `Week ${i + 1}`
+      };
+    });
+    
+    // Initialize last month data with zeros
+    skillProgressData.lastMonth = lastMonthWeeks.map(week => ({
+      week: week.week,
+      startDate: week.startDate,
+      endDate: week.endDate,
+      minutes: 0,
+      skills: {
+        dribbling: 0,
+        shooting: 0,
+        passing: 0,
+        defending: 0,
+        stamina: 0,
+        speed: 0
+      }
+    }));
+    
+    // Fill in last month data from sessions
+    sessions.forEach(session => {
+      const sessionDate = session.date;
+      
+      // Find which week this session belongs to
+      const weekIndex = lastMonthWeeks.findIndex(
+        week => sessionDate >= week.startDate && sessionDate <= week.endDate
+      );
+      
+      if (weekIndex !== -1) {
+        // Add duration
+        skillProgressData.lastMonth[weekIndex].minutes += session.duration || 0;
+        
+        // Add skill progress
+        if (session.metrics) {
+          Object.entries(session.metrics).forEach(([skill, value]) => {
+            if (skillProgressData.lastMonth[weekIndex].skills[skill] !== undefined) {
+              skillProgressData.lastMonth[weekIndex].skills[skill] += value;
+            }
+          });
+        } else {
+          console.log("Session missing metrics:", session.id);
+        }
+      }
+    });
+    
+    return skillProgressData;
   } catch (error) {
     console.error("Error getting skill progress stats:", error);
-    throw error;
+    // Return empty data on error
+    return {
+      monthlyProgress: [],
+      lastWeek: [],
+      lastMonth: [],
+      sessions: []
+    };
   }
 };
 
@@ -500,7 +713,7 @@ export const getTimeSinceLastImprovement = async (userId) => {
       date: doc.data().date || doc.data().timestamp.toDate().toISOString().split('T')[0]
     }));
     
-    const skills = ['dribbling', 'shooting', 'passing', 'defending', 'speed', 'stamina'];
+    const skills = ['dribbling', 'shooting', 'passing', 'stamina'];
     const lastImprovementDates = {};
     
     skills.forEach(skill => {
@@ -675,5 +888,93 @@ export const getSkillImbalanceAnalysis = async (userId) => {
       skillDeviations: {},
       imbalanceMessage: "Error analyzing skills."
     };
+  }
+};
+
+// Add a new function to create a session from manual form data
+export const createSessionFromFormData = async (userId, formData) => {
+  console.log("Creating session from form data:", formData);
+  
+  // Parse the date from the form
+  const sessionDate = formData.date ? new Date(formData.date) : new Date();
+  
+  // Set the time to noon on the selected date to avoid timezone issues
+  sessionDate.setHours(12, 0, 0, 0);
+  
+  // First initialize a session if one doesn't exist
+  if (!currentSession) {
+    initializeSession({
+      title: formData.title || 'Training Session',
+      skillsFocus: formData.skillsFocus || 'general',
+      intensity: formData.intensity || 5,
+      notes: formData.notes || ''
+    });
+  }
+  
+  // Add the custom date to the session
+  currentSession.date = formData.date;
+  currentSession.customStartTime = Timestamp.fromDate(sessionDate);
+  
+  // Map form data to session metrics
+  const skillsToUpdate = ['dribbling', 'shooting', 'passing', 'stamina', 'speed', 'defending'];
+  
+  skillsToUpdate.forEach(skill => {
+    if (formData[skill] > 0) {
+      // Convert the rating (0-10) to an XP value
+      const xpGained = formData[skill] * 10; // Simple conversion
+      
+      // Record this skill training in the current session
+      recordSkillTraining(skill, xpGained, formData.duration);
+    }
+  });
+  
+  // Save the session
+  return await saveCurrentSession(userId);
+};
+
+// Data migration utility to convert between formats
+export const migrateMetricsToSessions = async (userId) => {
+  try {
+    // Get metrics data (Jean-Branch format)
+    const metricsRef = collection(db, "Users", userId, "metrics");
+    const metricsSnapshot = await getDocs(metricsRef);
+    
+    // Get sessions data (Najee-Branch format)
+    const sessionsRef = collection(db, "Users", userId, "sessions");
+    
+    // For each metric, create a corresponding session
+    for (const metricDoc of metricsSnapshot.docs) {
+      const metricData = metricDoc.data();
+      
+      // Convert metric format to session format
+      const sessionData = {
+        timestamp: metricData.timestamp,
+        date: metricData.date,
+        startTime: metricData.timestamp,
+        endTime: metricData.timestamp,
+        duration: metricData.duration || 0,
+        metrics: {},
+        skillsChanged: [],
+        title: metricData.title || 'Imported Session',
+        notes: metricData.notes || '',
+        intensity: metricData.intensity || 5
+      };
+      
+      // Convert skill ratings to metrics
+      ['dribbling', 'shooting', 'passing', 'stamina'].forEach(skill => {
+        if (metricData[skill] > 0) {
+          sessionData.metrics[skill] = metricData[skill] * 10; // Convert rating to XP
+          sessionData.skillsChanged.push(skill);
+        }
+      });
+      
+      // Add to sessions collection
+      await addDoc(sessionsRef, sessionData);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error migrating metrics to sessions:", error);
+    return false;
   }
 };

@@ -14,7 +14,8 @@ import {
     faSignOutAlt,
     faInfoCircle,
     faUserCircle,
-    faFutbol
+    faFutbol,
+    faVideo
 } from '@fortawesome/free-solid-svg-icons';
 
 const Navigation = () => {
@@ -43,6 +44,7 @@ const Navigation = () => {
     const menuItems = [
         { path: '/dashboard', icon: faHome, label: 'Dashboard' },
         { path: '/skills', icon: faGraduationCap, label: 'Skills' },
+        { path: '/tutorials', icon: faVideo, label: 'Video Tutorials' },
         { path: '/stats', icon: faChartLine, label: 'Statistics' },
         { path: '/profile', icon: faUserCircle, label: 'Profile' },
         { path: '/about', icon: faInfoCircle, label: 'About' },
