@@ -9,7 +9,11 @@ import {
   where, 
   getDocs,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  addDoc,
+  serverTimestamp,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 
 // Create a new user in Firestore
@@ -141,6 +145,114 @@ export const updateUserProgress = async (uid, xp, level, xpThreshold) => {
     return true;
   } catch (error) {
     console.error("Error updating user progress:", error);
+    throw error;
+  }
+};
+
+// Track a new training session with metrics
+export const trackTrainingSession = async (uid, sessionData) => {
+  try {
+    const metricsRef = collection(db, "Users", uid, "metrics");
+    const sessionWithTimestamp = {
+      ...sessionData,
+      timestamp: serverTimestamp(),
+      date: new Date().toISOString().split('T')[0] // Store date in YYYY-MM-DD format
+    };
+    await addDoc(metricsRef, sessionWithTimestamp);
+    
+    // Update user's total sessions count
+    const userRef = doc(db, "Users", uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const totalSessions = (userDoc.data().totalSessions || 0) + 1;
+      await updateDoc(userRef, { 
+        totalSessions,
+        lastTrainingDate: sessionWithTimestamp.date
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error tracking training session:", error);
+    throw error;
+  }
+};
+
+// Get user's training metrics history
+export const getTrainingMetrics = async (uid, limit = 30) => {
+  try {
+    const metricsRef = collection(db, "Users", uid, "metrics");
+    const q = query(metricsRef, orderBy("timestamp", "desc"), limit(limit));
+    const querySnapshot = await getDocs(q);
+    
+    const metrics = [];
+    querySnapshot.forEach((doc) => {
+      metrics.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return metrics;
+  } catch (error) {
+    console.error("Error getting training metrics:", error);
+    throw error;
+  }
+};
+
+// Get metrics aggregated by date (for charts)
+export const getAggregatedMetrics = async (uid, dateField = "date", metricField) => {
+  try {
+    const metrics = await getTrainingMetrics(uid, 100);
+    
+    // Group by date and calculate aggregates
+    const aggregated = metrics.reduce((acc, metric) => {
+      const date = metric[dateField];
+      if (!acc[date]) {
+        acc[date] = {
+          date,
+          count: 0,
+          totalDuration: 0
+        };
+        
+        // Initialize all metric fields with 0
+        if (metricField) {
+          acc[date][metricField] = 0;
+        } else {
+          // If no specific metric field, track all numeric fields
+          Object.keys(metric).forEach(key => {
+            if (typeof metric[key] === 'number' && key !== 'timestamp') {
+              acc[date][key] = 0;
+            }
+          });
+        }
+      }
+      
+      // Increment counts and sums
+      acc[date].count += 1;
+      acc[date].totalDuration += metric.duration || 0;
+      
+      // Sum the metrics
+      if (metricField && typeof metric[metricField] === 'number') {
+        acc[date][metricField] += metric[metricField];
+      } else {
+        Object.keys(metric).forEach(key => {
+          if (typeof metric[key] === 'number' && key !== 'timestamp' && acc[date][key] !== undefined) {
+            acc[date][key] += metric[key];
+          }
+        });
+      }
+      
+      return acc;
+    }, {});
+    
+    // Convert to array and sort by date
+    return Object.values(aggregated).sort((a, b) => 
+      new Date(a.date) - new Date(b.date)
+    );
+  } catch (error) {
+    console.error("Error getting aggregated metrics:", error);
     throw error;
   }
 };
