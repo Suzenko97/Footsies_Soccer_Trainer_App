@@ -24,19 +24,31 @@ With many an aspiring soccer enthusiast and young player out in the world, there
 + React Rotor Dom
 + Recharts
 
-To run the app:
-    From root directory, in cmd line type "npm run dev"
+### Instruction to run the app
+1. Clone the repository using this link below
+```
+https://github.com/Suzenko97/Footsies_Soccer_Trainer_App.git
+```
+2. Open a command terminal and navigate to the project root folder
+3. In the root, write or copy/paste this line  
+```
+npm i
+```
+then Enter
+5. In frontend folder, write or copy/paste the following lines  
+```
+npm i recharts
+```
+then Enter  
+``` 
+npm i font-awesome
+```
+then Enter
+6. Navigate back to the root folder
+7. Boot the application by writing the following line
 
-Technologies used so far:
-    React
-    Cors
-    Express
-    Concurrently (not a full tool but useful to enable easy start)
-    Node
-    Firebase (For db and login)
-    React Roter Dom
+``` 
+npm run dev
+```
 
 
-    ***DB ACCESS RULES UPDATED AS OF 03/02/25***
-
-    When you clone the repo or you find that your pulled changes are not working, you need to run "npm install" in the root directory and in the frontend directory to make sure you get the updated dependencies since node_modules were removed for speed.
