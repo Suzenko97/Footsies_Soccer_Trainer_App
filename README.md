@@ -23,8 +23,38 @@ With many an aspiring soccer enthusiast and young player out in the world, there
 + Firebase (Database and Authorization)
 + Cors
 + Express
-+ React Rotor Dom
++ React Router Dom
 + Recharts
+
+### File Structure
+Footsies_Soccer_Trainer_App/
+├── .env
+├── .git/
+├── .gitattributes
+├── .gitignore
+├── README.md
+├── package.json
+├── package-lock.json
+├── backend/           #Not currently used but included for future scaling considerations
+│   ├── .env
+│   ├── node_modules/
+│   ├── package.json
+│   ├── package-lock.json
+│   └── server.js
+├── docs/             #In depth explanations of the statistics analysis algorithms powering the recommendatiions engine 
+│   ├── recommendation_system.txt
+│   ├── services_documentation.txt
+│   ├── session_recording.txt
+│   └── skill_imbalance_calculation.txt
+├── frontend/         #All app logic 
+│   ├── .env
+│   ├── README.md
+│   ├── node_modules/
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public/
+│   └── src/
+└── node_modules/
 
 ### Instruction to run the app
 1. Clone the repository using this link below
@@ -46,11 +76,24 @@ then Enter
 npm i font-awesome
 ```
 then Enter
-6. Navigate back to the root folder
-7. Boot the application by writing the following line
+
+6. In frontend folder create a .env to use for your firebase project authentication keys
+```
+FIREBASE_API_KEY=your_api_key
+FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_bucket.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+FIREBASE_APP_ID=your_app_id
+```
+Be sure to include this file in the .gitignore to avoid security breaches
+
+8. Navigate back to the root folder
+9. Boot the application by writing the following line
 
 ``` 
 npm run dev
 ```
+
 
 
