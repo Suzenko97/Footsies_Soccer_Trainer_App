@@ -27,34 +27,7 @@ With many an aspiring soccer enthusiast and young player out in the world, there
 + Recharts
 
 ### File Structure
-Footsies_Soccer_Trainer_App/
-├── .env
-├── .git/
-├── .gitattributes
-├── .gitignore
-├── README.md
-├── package.json
-├── package-lock.json
-├── backend/                #Not currently used but included for future scaling considerations
-│   ├── .env
-│   ├── node_modules/
-│   ├── package.json
-│   ├── package-lock.json
-│   └── server.js
-├── docs/                   #In depth explanations of the statistics analysis algorithms powering the recommendations engine
-│   ├── recommendation_system.txt
-│   ├── services_documentation.txt
-│   ├── session_recording.txt
-│   └── skill_imbalance_calculation.txt
-└── frontend/               #All app logic
-    ├── .env
-    ├── README.md
-    ├── node_modules/
-    ├── package.json
-    ├── package-lock.json
-    ├── public/
-    ├── src/
-    └── node_modules/
+![Image](https://github.com/user-attachments/assets/81efe53b-5e0f-4996-9c2b-f48a8ef93949)
 
 ### Instruction to run the app
 1. Clone the repository using this link below
