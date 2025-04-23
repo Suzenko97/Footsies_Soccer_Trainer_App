@@ -35,26 +35,26 @@ Footsies_Soccer_Trainer_App/
 ├── README.md
 ├── package.json
 ├── package-lock.json
-├── backend/           #Not currently used but included for future scaling considerations
+├── backend/                #Not currently used but included for future scaling considerations
 │   ├── .env
 │   ├── node_modules/
 │   ├── package.json
 │   ├── package-lock.json
 │   └── server.js
-├── docs/             #In depth explanations of the statistics analysis algorithms powering the recommendatiions engine 
+├── docs/                   #In depth explanations of the statistics analysis algorithms powering the recommendations engine
 │   ├── recommendation_system.txt
 │   ├── services_documentation.txt
 │   ├── session_recording.txt
 │   └── skill_imbalance_calculation.txt
-├── frontend/         #All app logic 
-│   ├── .env
-│   ├── README.md
-│   ├── node_modules/
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── public/
-│   └── src/
-└── node_modules/
+└── frontend/               #All app logic
+    ├── .env
+    ├── README.md
+    ├── node_modules/
+    ├── package.json
+    ├── package-lock.json
+    ├── public/
+    ├── src/
+    └── node_modules/
 
 ### Instruction to run the app
 1. Clone the repository using this link below
